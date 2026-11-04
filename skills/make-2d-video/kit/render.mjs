@@ -5,6 +5,8 @@
 //   node render.mjs --project P --stills 3.5,12,40                    stills at times -> build/stills
 //   node render.mjs --project P --styles dusk,midnight,golden,neon --at 3.5,12,40   style comparison grid
 // Options: --workers N  --scale K  --style ID  --debug  --format png|jpeg  --crf 18  --gl auto|gpu|swiftshader  --out FILE
+// --- pre-check: dependency guard (لا يغيّر هوية المحرك، فقط يتحقق قبل التشغيل) ---
+import { spawnSync as _checkSpawnSync } from 'node:child_process';
 import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -12,6 +14,30 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+// resolve ffmpeg: system > @ffmpeg-installer > playwright cache
+let FFMPEG_BIN = 'ffmpeg';
+try {
+  const sys = _checkSpawnSync('which', ['ffmpeg'], { encoding: 'utf8' });
+  if (!sys.stdout || !sys.stdout.trim()) {
+    const ffLocal = path.join(path.dirname(fileURLToPath(import.meta.url)), 'node_modules/@ffmpeg-installer/linux-x64/ffmpeg');
+    if (fs.existsSync(ffLocal)) FFMPEG_BIN = ffLocal;
+  }
+} catch {}
+// sparticuz chromium helper: if playwright cache missing, try @sparticuz
+let CHROMIUM_EXTRA_ARGS = [];
+let LD_LIB_HINT = '';
+try {
+  const home = process.env.HOME || '/home/user';
+  const hasCache = fs.existsSync(path.join(home, '.cache/ms-playwright')) && fs.readdirSync(path.join(home, '.cache/ms-playwright')).some(f=>f.startsWith('chromium'));
+  if (!hasCache) {
+    const spBr = path.join(path.dirname(fileURLToPath(import.meta.url)), 'node_modules/@sparticuz/chromium/bin/chromium.br');
+    const nssSo = path.join(path.dirname(fileURLToPath(import.meta.url)), 'node_modules/@achingbrain/nss/linux/libnss3.so');
+    if (fs.existsSync(spBr) && fs.existsSync(nssSo)) {
+      // hint for LD_LIBRARY_PATH (سيتم استخدامه عند فشل التشغيل لعرض رسالة واضحة)
+      LD_LIB_HINT = path.dirname(nssSo);
+    }
+  }
+} catch {}
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const args = {}; { const a = process.argv.slice(2); for (let i = 0; i < a.length; i++) { if (a[i].startsWith('--')) { const k = a[i].slice(2); const v = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; args[k] = v; } } }
@@ -63,7 +89,7 @@ async function renderVideo() {
     const a = f0 + k * chunk, b = Math.min(f1, a + chunk); if (a >= b) return null;
     const browser = await chromium.launch(LAUNCH); const page = await openPlayer(browser);
     const out = path.join(partsDir, `part_${String(k).padStart(3, '0')}.mp4`);
-    const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-c:v', 'libx264', '-preset', args.preset || 'medium', '-crf', String(args.crf || 18), '-pix_fmt', 'yuv420p', '-r', String(fps), out], { stdio: ['pipe', 'inherit', 'inherit'] });
+    const ff = spawn(FFMPEG_BIN, ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-c:v', 'libx264', '-preset', args.preset || 'medium', '-crf', String(args.crf || 18), '-pix_fmt', 'yuv420p', '-r', String(fps), out], { stdio: ['pipe', 'inherit', 'inherit'] });
     for (let f = a; f < b; f++) {
       const img = await shot(page, f); if (!ff.stdin.write(img)) await new Promise(r => ff.stdin.once('drain', r)); done++;
       if (done % 48 === 0) { const el = (Date.now() - t0) / 1000, eta = (el / done) * (f1 - f0 - done); process.stdout.write(`  ${done}/${f1 - f0} frames  ${(done / el).toFixed(2)} fps  elapsed ${fmtT(el)}  eta ${fmtT(eta)}\n`); }
@@ -74,7 +100,7 @@ async function renderVideo() {
   const parts = (await Promise.all([...Array(W)].map((_, k) => work(k)))).filter(Boolean);
   const list = path.join(partsDir, 'list.txt'); fs.writeFileSync(list, parts.map(p => `file '${p.replace(/\\/g, '/').replace(/'/g, "'\\''")}'`).join('\n'));
   const out = path.resolve(args.out || path.join(BUILD, args.from || args.to ? 'preview.mp4' : 'video_silent.mp4'));
-  await new Promise((res, rej) => spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', '-movflags', '+faststart', out], { stdio: 'inherit' }).on('close', c => (c ? rej(new Error('concat failed')) : res())));
+  await new Promise((res, rej) => spawn(FFMPEG_BIN, ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', '-movflags', '+faststart', out], { stdio: 'inherit' }).on('close', c => (c ? rej(new Error('concat failed')) : res())));
   if (errs.size) { console.log(`\n${errs.size} shot error(s):`); [...errs].slice(0, 40).forEach(e => console.log('  ' + e)); }
   console.log(`\nDone: ${out}  (${fmtT((Date.now() - t0) / 1000)})`);
 }
@@ -101,5 +127,20 @@ async function renderStills() {
   await browser.close(); console.log(`Wrote ${all.length} stills + contact sheet(s) to ${dir}`);
 }
 try { if (args.sheet || args.stills || args.styles) await renderStills(); else await renderVideo(); }
-catch (e) { console.error('RENDER FAILED:', e.message); process.exitCode = 1; }
+catch (e) {
+  const msg = e.message || String(e);
+  if (msg.includes('Executable doesn') || msg.includes('browserType.launch')) {
+    console.error('RENDER FAILED: Chromium غير مثبت أو غير قابل للتشغيل');
+    console.error('  السبب:', msg.slice(0,300));
+    console.error('  الحل: node tools/check-env.mjs ثم راجع docs/ENV_SETUP.md');
+    if (LD_LIB_HINT) console.error(`  تلميح: LD_LIBRARY_PATH=${LD_LIB_HINT}:$LD_LIBRARY_PATH قد يحل مشكلة libnss3 (مؤقت)`);
+    console.error(`  FFmpeg المستخدم: ${FFMPEG_BIN}`);
+  } else if (msg.includes('ffmpeg') || msg.includes('ENOENT') && msg.includes('ffmpeg')) {
+    console.error('RENDER FAILED: FFmpeg مفقود');
+    console.error(`  حاول: npm install @ffmpeg-installer/ffmpeg (مضمّن، لا يحتاج apt) — الحالي: ${FFMPEG_BIN}`);
+  } else {
+    console.error('RENDER FAILED:', msg);
+  }
+  process.exitCode = 1;
+}
 finally { server.close(); }
