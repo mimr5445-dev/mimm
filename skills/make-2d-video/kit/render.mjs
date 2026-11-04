@@ -26,18 +26,68 @@ try {
 // sparticuz chromium helper: if playwright cache missing, try @sparticuz
 let CHROMIUM_EXTRA_ARGS = [];
 let LD_LIB_HINT = '';
+let SPARTICUZ_EXEC = null;
+let SPARTICUZ_ARGS = [];
 try {
   const home = process.env.HOME || '/home/user';
   const hasCache = fs.existsSync(path.join(home, '.cache/ms-playwright')) && fs.readdirSync(path.join(home, '.cache/ms-playwright')).some(f=>f.startsWith('chromium'));
   if (!hasCache) {
     const spBr = path.join(path.dirname(fileURLToPath(import.meta.url)), 'node_modules/@sparticuz/chromium/bin/chromium.br');
     const nssSo = path.join(path.dirname(fileURLToPath(import.meta.url)), 'node_modules/@achingbrain/nss/linux/libnss3.so');
+    const shimSo = path.join(path.dirname(fileURLToPath(import.meta.url)), 'tools/nss_shim.so');
     if (fs.existsSync(spBr) && fs.existsSync(nssSo)) {
-      // hint for LD_LIBRARY_PATH (سيتم استخدامه عند فشل التشغيل لعرض رسالة واضحة)
       LD_LIB_HINT = path.dirname(nssSo);
+      // prepare env for sparticuz chromium
+      process.env.LD_LIBRARY_PATH = LD_LIB_HINT + ':' + (process.env.LD_LIBRARY_PATH||'');
+      if (fs.existsSync(shimSo)) process.env.LD_PRELOAD = shimSo + (process.env.LD_PRELOAD ? ':'+process.env.LD_PRELOAD : '');
+      // prepare chromium binary synchronously if needed (inflate is async, but we can check /tmp/chromium)
+      if (!fs.existsSync('/tmp/chromium')) {
+        // will be prepared on first launch via async helper
+        SPARTICUZ_EXEC = '/tmp/chromium'; // expected path
+      } else {
+        SPARTICUZ_EXEC = '/tmp/chromium';
+      }
+      // get sparticuz args (sync read via require)
+      try {
+        const { createRequire } = await import('module');
+        const require = createRequire(import.meta.url);
+        const Chromium = require(path.join(path.dirname(fileURLToPath(import.meta.url)), 'node_modules/@sparticuz/chromium/build/index.js'));
+        SPARTICUZ_ARGS = Chromium.args || [];
+        // ensure swiftshader dir exists for 92 (needs /tmp/swiftshader)
+        if (!fs.existsSync('/tmp/swiftshader') && fs.existsSync('/tmp/libGLESv2.so')) {
+          fs.mkdirSync('/tmp/swiftshader', {recursive:true});
+          for (const f of ['libGLESv2.so','libvk_swiftshader.so','vk_swiftshader_icd.json']) {
+            if (fs.existsSync(path.join('/tmp', f))) fs.copyFileSync(path.join('/tmp', f), path.join('/tmp/swiftshader', f));
+          }
+        }
+      } catch {}
     }
   }
 } catch {}
+async function ensureSparticuzReady() {
+  if (SPARTICUZ_EXEC && !fs.existsSync(SPARTICUZ_EXEC)) {
+    try {
+      const { createRequire } = await import('module');
+      const require = createRequire(import.meta.url);
+      const Chromium = require(path.join(path.dirname(fileURLToPath(import.meta.url)), 'node_modules/@sparticuz/chromium/build/index.js'));
+      const p = await Chromium.executablePath;
+      SPARTICUZ_EXEC = p;
+    } catch {}
+  }
+  // ensure swiftshader
+  if (!fs.existsSync('/tmp/swiftshader') && fs.existsSync('/tmp/libGLESv2.so')) {
+    fs.mkdirSync('/tmp/swiftshader', {recursive:true});
+    for (const f of ['libGLESv2.so','libvk_swiftshader.so','vk_swiftshader_icd.json']) {
+      if (fs.existsSync(path.join('/tmp', f)) && !fs.existsSync(path.join('/tmp/swiftshader', f))) fs.copyFileSync(path.join('/tmp', f), path.join('/tmp/swiftshader', f));
+    }
+  }
+}
+function getLaunchOpts() {
+  if (SPARTICUZ_EXEC && fs.existsSync(SPARTICUZ_EXEC)) {
+    return { executablePath: SPARTICUZ_EXEC, args: [...LAUNCH.args, ...SPARTICUZ_ARGS.filter(a=>!LAUNCH.args.includes(a))] };
+  }
+  return LAUNCH;
+}
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const args = {}; { const a = process.argv.slice(2); for (let i = 0; i < a.length; i++) { if (a[i].startsWith('--')) { const k = a[i].slice(2); const v = a[i + 1] && !a[i + 1].startsWith('--') ? a[++i] : true; args[k] = v; } } }
@@ -76,7 +126,8 @@ const shot = (page, f) => page.evaluate(i => window.renderFrame(i), f).then(() =
 const fmtT = s => `${Math.floor(s / 60)}m${String(Math.round(s % 60)).padStart(2, '0')}s`;
 
 async function renderVideo() {
-  const b0 = await chromium.launch(LAUNCH); const p0 = await openPlayer(b0);
+  await ensureSparticuzReady();
+  const b0 = await chromium.launch(getLaunchOpts()); const p0 = await openPlayer(b0);
   const total = await p0.evaluate('window.TOTAL_FRAMES'), fps = FPS;
   const missing = (await p0.evaluate('window.SHOT_LIST')).filter(s => !s.ok); if (missing.length) console.log(`WARNING: ${missing.length} shots have no scene file yet: ${missing.slice(0, 12).map(s => s.id).join(', ')}${missing.length > 12 ? ' …' : ''}`);
   await b0.close();
@@ -87,7 +138,7 @@ async function renderVideo() {
   console.log(`Rendering frames ${f0}-${f1} (${((f1 - f0) / fps).toFixed(1)} s) with ${W} worker(s)…`);
   const work = async (k) => {
     const a = f0 + k * chunk, b = Math.min(f1, a + chunk); if (a >= b) return null;
-    const browser = await chromium.launch(LAUNCH); const page = await openPlayer(browser);
+    const browser = await chromium.launch(getLaunchOpts()); const page = await openPlayer(browser);
     const out = path.join(partsDir, `part_${String(k).padStart(3, '0')}.mp4`);
     const ff = spawn(FFMPEG_BIN, ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-c:v', 'libx264', '-preset', args.preset || 'medium', '-crf', String(args.crf || 18), '-pix_fmt', 'yuv420p', '-r', String(fps), out], { stdio: ['pipe', 'inherit', 'inherit'] });
     for (let f = a; f < b; f++) {
@@ -111,7 +162,8 @@ async function contactSheet(browser, items, outFile, cols = 4, cellW = 480) {
   await page.setContent(html); await page.screenshot({ path: outFile, fullPage: true }); await page.close();
 }
 async function renderStills() {
-  const browser = await chromium.launch(LAUNCH); const styles = args.styles ? String(args.styles).split(',') : [args.style || null];
+  await ensureSparticuzReady();
+  const browser = await chromium.launch(getLaunchOpts()); const styles = args.styles ? String(args.styles).split(',') : [args.style || null];
   const dir = path.join(BUILD, args.styles ? 'styles' : args.sheet ? 'sheets' : 'stills'); fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir, { recursive: true });
   const all = [];
   for (const st of styles) {

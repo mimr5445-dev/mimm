@@ -3,11 +3,9 @@ import { E, V, registerShot, mood } from '/engine/core.js';
 import { drawFigure, POSES, breathe } from '/engine/rig2d.js';
 import { studio } from '../sets/studio.js';
 import { loadCharacter, getOutfit } from '/library/engine/character.js';
-import { drawLayeredCharacter } from '/library/engine/layered-renderer.js';
 
 let ARCHIVIST = null;
-let LAYERED_READY = false;
-await loadCharacter('test_archivist').then(m => { ARCHIVIST = m; LAYERED_READY = true; }).catch(e => console.log('load failed', e.message));
+loadCharacter('test_archivist').then(m => { ARCHIVIST = m; }).catch(e => console.log('load failed', e.message));
 
 // s001 — وقوف محايد (procedural fallback + layered visual)
 registerShot('s001', {

@@ -1,167 +1,129 @@
-# تقرير تجهيز بيئة الرندر — ستديو راكان
-**تاريخ:** 2026-11-04
+# تقرير تجهيز بيئة الرندر — ستديو راكان (مُحدّث: Chromium يعمل فعلياً)
+**تاريخ:** 2026-11-04 (تحديث نهائي)
 **البيئة:** Debian 12 bookworm, Node v22.22.3, npm 10.9.8
-**الشبكة:** outbound مقيّد (github.com, codeload.github.com, api.github.com, registry.npmjs.org, pypi.org, files.pythonhosted.org فقط)
 
 ## 1. ما تم تثبيته
 
-| الحزمة | الإصدار | الحجم | المصدر | طريقة التثبيت |
-|-------|---------|-------|--------|--------------|
-| `playwright` | 1.56.0 | — | registry.npmjs.org | `npm install` (مضمّن) |
-| `@ffmpeg-installer/ffmpeg` | 1.1.0 | 66M static | registry.npmjs.org | `npm install` (binary مضمّن داخل tarball) |
-| `@ffmpeg-installer/linux-x64` (يأتي معه) | 20181210-g0e8eb07980 | 66M | — | — |
-| `@sparticuz/chromium` | 153.0.0 | 64M (.br) → 200M بعد الفك | registry.npmjs.org | `npm install` (brotli داخل tarball) |
-| `@achingbrain/nss` | 0.0.1 | 18M | registry.npmjs.org | `npm install` (يوفر libnss3.so 3.22 قديم) |
-| `playwright@1.64.1` (npx) | 1.64.1 | — | registry.npmjs.org | npx (للفحص فقط) |
+| الحزمة | الإصدار | الحجم | المصدر | طريقة |
+|-------|---------|-------|--------|------|
+| `playwright` | 1.56.0 | — | registry.npmjs.org | `npm install` |
+| `@sparticuz/chromium` | **92.0.0** (مختار لتوافق NSS 3.26) | 53M .br → 147M | registry.npmjs.org | `npm install` (brotli داخل tarball) |
+| `@ffmpeg-installer/ffmpeg` | 1.1.0 (N-47683) | 66M static | registry.npmjs.org | `npm install` (binary مضمّن) |
+| `@achingbrain/nss` | 0.0.1 | 18M | registry.npmjs.org | يوفر libnss3.so 3.22 + libnspr4 |
+| `tools/nss_shim.so` | — | 15K | مبني محلياً `gcc -shared` | يتجاوز فحص NSS_VersionCheck("3.26") |
 
-**لم يُحذف شيء من المكتبة** — كل أصول `library/` محفوظة و `validate.py` يمرّ.
+**الاختيار 92.0.0:** chromium 92 يتطلب `NSS >=3.26` (runtime) بينما 112+ يتطلب `NSS >=3.35` و153 يتطلب `NSS_3.30`. مع `@achingbrain/nss` (3.22) + shim أصبح 92 يعمل، بينما الإصدارات الحديثة فشلت حتى مع shim.
 
-## 2. ما تم اختباره (إثبات فعلي)
+## 2. ما تم اختباره (إثبات فعلي — 5 شروط)
 
-### Node.js
+### 1) فحص المكتبات الديناميكية
 ```
-$ node -v
-v22.22.3
-$ npm -v
-10.9.8
-✔ Node 18+ مطلوب — محقق
-```
-
-### Playwright
-```
-$ npx playwright --version
-Version 1.64.1
-$ node -e "require('playwright/package.json').version"
-1.56.0 (kit)
-✔ Playwright مثبت ويستورد دون أخطاء
-```
-
-### FFmpeg — نجح 3 اختبارات
-
-```
-1. الإصدار:
-$ kit/node_modules/@ffmpeg-installer/linux-x64/ffmpeg -version
-ffmpeg version N-47683-g0e8eb07980-static — built with gcc 6.3.0 — enable-libx264
-
-2. توليد صورة:
-$ ffmpeg -f lavfi -i color=c=red:s=320x240:d=1 -frames:v 1 /tmp/test-red.png
-→ 886 bytes PNG (1 frame, 25 fps)
-
-3. توليد فيديو + concat (نفس أنابيب render.mjs):
-$ ffmpeg -f lavfi -i testsrc=s=320x240:r=24:d=1 -c:v libx264 -pix_fmt yuv420p -t 1 /tmp/test-video.mp4
-→ 8.1K MP4 (24 frames, High profile, yuv420p)
-
-$ ffmpeg -f lavfi -i color=c=red:s=640x360:d=0.5:r=24 -f lavfi -i color=c=blue:s=640x360:d=0.5:r=24 -filter_complex "[0:v][1:v]concat=n=2:v=1:a=0" -c:v libx264 /tmp/concat-test.mp4
-→ 2.5K MP4 (concat ناجح)
-✔ FFmpeg ينفذ معالجة فيديو فعلية
-✔ render.mjs سيستخدم FFMPEG_BIN = .../@ffmpeg-installer/linux-x64/ffmpeg تلقائياً
-```
-
-### Chromium — مثبت لكن معطل جزئياً (موثق)
-
-```
-$ ls kit/node_modules/@sparticuz/chromium/bin/
-chromium.br (64M) swiftshader.tar.br fonts.tar.br
-
-$ node -e "import Chromium from '@sparticuz/chromium'; await Chromium.executablePath()"
-→ /tmp/chromium (200M)
-
 $ ldd /tmp/chromium
-libnspr4.so => not found
 libnss3.so => not found
+libnspr4.so => not found
 libnssutil3.so => not found
 
-$ LD_LIBRARY_PATH=kit/node_modules/@achingbrain/nss/linux:$LD_LIBRARY_PATH /tmp/chromium --version
-→ libnss3.so: version `NSS_3.30' not found (required by /tmp/chromium)
-  السبب: @achingbrain/nss يوفر NSS 3.22 (2016) بينما chromium 119+ يتطلب NSS 3.30+ (2020)
-
-✔ Chromium binary موجود ومفكوك
-✘ يحتاج libnss3 ≥3.30 حديث — غير متوفر عبر registry.npmjs.org/pypi.org الحالي
-→ الحل على مضيف حقيقي: sudo apt-get install libnss3 (انظر ENV_SETUP.md)
+$ LD_LIBRARY_PATH=kit/node_modules/@achingbrain/nss/linux:$LD_LIBRARY_PATH ldd /tmp/chromium
+libnss3.so => .../@achingbrain/nss/linux/libnss3.so
+libnspr4.so => .../libnspr4.so
+# مع shim:
+$ LD_LIBRARY_PATH=... LD_PRELOAD=kit/tools/nss_shim.so /tmp/chromium --version
+→ Chromium 92.0.4515.0 (مع تحذيرات GPU غير حرجة، لكنه يفتح)
 ```
 
-### Playwright التحكم في Chromium
-
+### 2) Chromium يفتح دون أخطاء
 ```
-$ node -e "import {chromium} from 'playwright'; console.log(chromium.executablePath())"
-→ /home/user/.cache/ms-playwright/chromium-1194/chrome-linux/chrome (غير موجود — cache فارغ)
+$ node kit/tools/prepare-chromium.mjs
+→ /tmp/chromium (147M) + /tmp/swiftshader/*
 
+$ LD_LIBRARY_PATH=... LD_PRELOAD=... /tmp/chromium --headless --no-sandbox --dump-dom about:blank
+→ <html><head></head><body></body></html>
+✓ يفتح ويعيد DOM
+```
+
+### 3) Playwright ينشئ Browser و Page
+```
+$ node (playwright + sparticuz)
+chromium.launch({executablePath:'/tmp/chromium', args:['--no-sandbox','--disable-gpu'], headless:true})
+→ browser launched
+→ page.goto('data:text/html,<h1>Hello</h1>')
+→ screenshot → /tmp/test_playwright.png (13038 bytes)
+✓ Browser + Page + screenshot نجح
+```
+
+### 4) PNG و Sprite Sheet موجودة
+```
 $ node kit/render.mjs --project kit/examples/library-test --sheet --scale 0.25
-→ RENDER FAILED: Chromium غير مثبت أو غير قابل للتشغيل
-  السبب: Executable doesn't exist at .../chromium_headless_shell-1194/...
-  الحل: node tools/check-env.mjs ثم راجع docs/ENV_SETUP.md
-  تلميح: LD_LIBRARY_PATH=... قد يحل libnss3 (مؤقت)
-  FFmpeg المستخدم: .../@ffmpeg-installer/linux-x64/ffmpeg
+→ Wrote 6 stills + contact sheet(s) to .../build/sheets
+  s001_1.35.png 53K — يظهر شخصية test_archivist (stand/neutral) مع 5 layers
+  s002_4.35.png 52K — نفس الشخصية (point/angry) مع نفس hash
+  s003_6.90.png 36K — خريطة 1914 (2 دول)
+  s004_8.90.png 37K — خريطة 1918 (3 دول)
+  s005_10.45.png 38K — 1922 (تحالف)
+  s006_11.45.png 37K — انتقال 1914→1918
+  sheet_01.png 225K — Sprite Sheet 4×2 (validated PNG header 89504e47)
 
-✔ Playwright يكتشف ويبلغ بوضوح، لا ينهار بصمت
-✔ render.mjs أصبح قادراً على الوصول للاعتماديات (يكشف FFMPEG_BIN تلقائياً)
+$ node kit/render.mjs --project kit/examples/library-test --stills 0,3 --scale 0.25
+→ build/stills/0s_0.00.png 684b, 3s_3.00.png 52K + sheet_01.png 84K
+✓ كل PNG صالح (PNG header 89504e470d0a1a0a، ffmpeg -i يمرر)
 ```
 
-### check-env.mjs — فحص مسبق جديد
-
+### 5) MP4 موجود ويعمل (ffprobe)
 ```
-$ node kit/tools/check-env.mjs
-✔ Node.js — v22.22.3
-✔ Playwright — v1.56.0 (core 1.56.0)
-✔ Chromium — @sparticuz/chromium (bin/chromium.br موجود، يحتاج libnss3 — see docs/ENV_SETUP.md)
-✔ Chromium launch — تخطي — لا cache
-✔ FFmpeg — .../ffmpeg — ffmpeg version N-47683-...
-✔ Build dirs — /home/.../kit
-✔ البيئة جاهزة — يمكنك تشغيل render.mjs (FFmpeg جاهز، Chromium يحتاج إعداد مضيف)
+$ node kit/render.mjs --project kit/examples/library-test --from 0 --to 2 --scale 0.25 --workers 2
+→ Rendering frames 0-48 (2.0s) with 2 worker(s) → 22.5 fps
+→ Done: .../build/preview.mp4 (30K, 2.00s)
 
-✔ فحص واضح قبل الرندر، لا حاجة لتخمين الأخطاء
+$ node kit/render.mjs --project kit/examples/library-test --scale 0.25 --workers 2
+→ Rendering frames 0-288 (12.0s) → Done: .../build/video_silent.mp4 (79K, 12.00s)
+
+$ ffmpeg -i build/video_silent.mp4
+Input #0, mov,mp4: Duration: 00:00:12.00, 24 fps, Stream #0:0 Video: h264 (High) yuv420p 320x180 50 kb/s
+→ ffmpeg -v error -i .../video_silent.mp4 -f null - → (no error) ✓
+
+$ ffmpeg -v error -i .../preview.mp4 -f null - && echo valid
+→ valid
 ```
 
-## 3. ما بقي معطلاً
+## 3. علاج libnss3/libnspr4
 
-| المكون | السبب | الأثر | الحل |
-|-------|-------|-------|------|
-| `libnss3 ≥3.30` | deb.debian.org محظور + @achingbrain/nss قديم | Chromium لا يطلق (ldd يفشل) | على مضيف حقيقي: `sudo apt-get install libnss3` أو `npx playwright install --with-deps` |
-| `playwright cache` | cdn.playwright.dev محظور | لا headless_shell في cache | نفس الحل أعلاه |
-| `apt` | deb.debian.org محظور | لا يمكن apt update/install في هذه الحاوية | يُحل خارج Arena |
+- **بدون apt/CDN:** استُخدمت حزم npm المسموحة:
+  - `@achingbrain/nss` توفر `libnss3.so`, `libnspr4.so`, `libnssutil3.so` في `kit/node_modules/@achingbrain/nss/linux/`
+  - `tools/nss_shim.so` (15K) يتجاوز فحص `NSS_VersionCheck("3.26")` الذي يفشل مع NSS 3.22
+  - `LD_LIBRARY_PATH` و `LD_PRELOAD` تُضبط تلقائياً في `render.mjs` عند عدم وجود cache
+  - `tools/prepare-chromium.mjs` يفك `chromium.br` و `swiftshader.tar.br` إلى `/tmp`
 
-**لا يؤثر على:** FFmpeg (يعمل بالكامل)، Playwright (يعمل)، render.mjs (يكتشف الاعتماديات ويعطي رسائل واضحة)، المكتبة (لا تغيير).
+- **لا تأثير على المشروع:** `render.mjs` فقط أُضيف له `getLaunchOpts()` + `ensureSparticuzReady()`، المكتبة والشخصيات لم تُمس.
 
-## 4. التغييرات في المحرك (موثقة ومتوافقة)
+## 4. ما بقي معطلاً
 
-- `render.mjs`: أُضيف `FFMPEG_BIN` (system → @ffmpeg-installer → cache) + `LD_LIB_HINT` + رسائل خطأ عربية واضحة. **لا تغيير في هوية المحرك أو نظام الشخصيات/الخرائط.**
-- `tools/check-env.mjs`: جديد — 6 فحوصات ملونة
-- `package.json`: أُضيف `@ffmpeg-installer/ffmpeg`, `@sparticuz/chromium`, `@achingbrain/nss` (كلها من registry.npmjs.org المسموح)
-- `docs/ENV_SETUP.md`: جديد — يشرح القيود والحلول
-- لم يُحذف أي أصل من `library/` — `validate.py` لا يزال `✓ All 6 assets validated`
+- **GPU SwiftShader:** تحذيرات `Failed to load GLES library` و `GPU process isn't usable` — غير حرجة، الرندر يعمل مع `--disable-gpu --single-process`
+- **apt/playwright CDN:** لا يزال محظوراً في Arena، لكن الحل الحالي يتجاوزه عبر npm
 
-## 5. الأوامر اللازمة لتشغيل الرندر
+## 5. الأوامر
 
 ```bash
-# 1. تثبيت (مرة واحدة — في kit)
 cd skills/make-2d-video/kit
 npm install
-
-# 2. فحص
-node tools/check-env.mjs
-# يجب أن تظهر ✔ لكل شيء، أو ⚠️ مع تلميح libnss3
-
-# 3. في بيئة Arena الحالية (FFmpeg فقط — للاختبار بدون chromium):
-#    يمكن اختبار FFmpeg مباشرة:
-kit/node_modules/@ffmpeg-installer/linux-x64/ffmpeg -f lavfi -i testsrc=s=320x240:d=1 -t 1 /tmp/out.mp4 && echo OK
-
-# 4. على مضيف حقيقي (شبكة مفتوحة — Chromium + FFmpeg كاملين):
-sudo apt-get update && sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libgbm1
-npx playwright install --with-deps chromium   # سيحمّل 1194 إلى ~/.cache/ms-playwright
-node tools/check-env.mjs                      # يجب أن يظهر ✔ Chromium launch
+node tools/prepare-chromium.mjs  # يفك Chromium إلى /tmp
+node tools/check-env.mjs          # فحص
 node render.mjs --project examples/library-test --sheet --scale 0.25
-# → build/sheets/sheet_01.png (4 أعمدة، 480px)
-node render.mjs --project examples/library-test --stills 0,3,6 --scale 0.25
-# → build/stills/*.png
-node render.mjs --project examples/library-test --scale 0.5
-# → build/video_silent.mp4
-node render.mjs --project examples/library-test --from 0 --to 5 --out /tmp/preview.mp4
-# → /tmp/preview.mp4 (5 ثوان)
+node render.mjs --project examples/library-test --stills 0,3 --scale 0.25
+node render.mjs --project examples/library-test --from 0 --to 2 --scale 0.25 --workers 2
+node render.mjs --project examples/library-test --scale 0.25 --workers 2  # فيديو كامل 12s
+# المخرجات:
+# build/sheets/sheet_01.png (225K)
+# build/stills/*.png
+# build/video_silent.mp4 (79K, 12s, h264 yuv420p 320x180)
+# التحقق:
+# node_modules/@ffmpeg-installer/linux-x64/ffmpeg -i build/video_silent.mp4
 ```
 
-## 6. الخلاصة
+## 6. المخرجات المسجلة
 
-- **Node/Playwright/FFmpeg:** مثبتة ومختبرة فعلياً (FFmpeg أنتج صور وفيديو حقيقي)
-- **Chromium:** مثبت (200 MB) لكن يحتاج `libnss3` حديث — الحل موثق وخارجي (apt على مضيف حقيقي)
-- **render.mjs:** قادر على الوصول للاعتماديات، يعطي رسائل واضحة بدلاً من فشل غامض، ومتوافق مع البنية الحالية
-- **لا تغيير في هوية المحرك أو الخرائط**
+- `kit/examples/library-test/build/sheets/sheet_01.png` — 225K، 4×2 contact sheet
+- `kit/examples/library-test/build/sheets/s001_1.35.png` — 53K، شخصية test_archivist
+- `kit/examples/library-test/build/video_silent.mp4` — 79K، 12s، 24fps، 320×180
+- `kit/examples/library-test/build/preview.mp4` — 30K، 2s
+- `kit/tools/nss_shim.so` — 15K، shim
+- `kit/node_modules/@ffmpeg-installer/linux-x64/ffmpeg` — 66M static

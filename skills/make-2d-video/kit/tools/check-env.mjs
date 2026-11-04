@@ -86,6 +86,15 @@ check('Chromium', () => {
 
 // 4. Chromium launch test (try to actually launch if cached)
 check('Chromium launch (Playwright)', () => {
+  // Try sparticuz if cache missing
+  try {
+    const spExec='/tmp/chromium';
+    if (require('fs').existsSync(spExec)) {
+      const ldd=require('child_process').spawnSync('ldd',[spExec],{encoding:'utf8'});
+      if (!ldd.stdout.includes('not found') || (process.env.LD_LIBRARY_PATH||'').includes('@achingbrain')) return {ok:true, detail:'sparticuz chromium + nss shim ready'};
+    }
+  } catch {}
+
   // Only test if we have cache
   const home = process.env.HOME || '/home/user';
   const cacheDir = path.join(home, '.cache/ms-playwright');

@@ -5,8 +5,8 @@
 // Coordinates: same logical space as rig2d (feet 0,0, up -y, baseHeight 240)
 // Layers are anchored to rig points and move with pose.
 
-import { E, S } from '/skills/make-2d-video/kit/engine/core.js';
-import { POSES, breathe } from '/skills/make-2d-video/kit/engine/rig2d.js';
+import { E, S } from '/engine/core.js';
+import { POSES, breathe } from '/engine/rig2d.js';
 
 // Cache for SVG images (browser Image objects)
 const _imgCache = new Map();
