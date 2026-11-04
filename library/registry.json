@@ -21,6 +21,16 @@
         "commander"
       ],
       "version": "1.0.0"
+    },
+    {
+      "id": "test_archivist",
+      "path": "/library/characters/test_archivist/manifest.json",
+      "engine": "layered-svg",
+      "tags": [
+        "test",
+        "layered"
+      ],
+      "version": "1.0.0"
     }
   ],
   "maps": [

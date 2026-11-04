@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40">
+  <!-- accessory — scroll / badge tied to hand -->
+  <rect x="5" y="5" width="20" height="30" rx="2" fill="#F5E6CC" stroke="#8B7355" stroke-width="1.5"/>
+  <rect x="7" y="8" width="16" height="2" fill="#8B7355" opacity="0.5"/>
+  <rect x="7" y="13" width="14" height="2" fill="#8B7355" opacity="0.5"/>
+  <rect x="7" y="18" width="15" height="2" fill="#8B7355" opacity="0.5"/>
+  <!-- seal -->
+  <circle cx="15" cy="28" r="5" fill="#8B1A1A" stroke="#5A1010" stroke-width="1"/>
+  <text x="15" y="30" text-anchor="middle" font-size="5" fill="#FFD700" font-weight="bold">✦</text>
+</svg>

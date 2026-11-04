@@ -1,0 +1,16 @@
+{
+  "title": "Library Test — Layered Archivist",
+  "aspect": "16:9",
+  "resolution": "720p",
+  "fps": 24,
+  "style": "dusk",
+  "voiceover": "input/voiceover.mp3",
+  "duration": 6,
+  "captions": false,
+  "bars": null,
+  "fadeIn": 0.3,
+  "fadeOut": 0.5,
+  "music": {"enabled": false},
+  "sfx": {"enabled": false},
+  "loudness": -14
+}

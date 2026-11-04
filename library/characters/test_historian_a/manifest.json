@@ -2,7 +2,7 @@
   "id": "test_historian_a",
   "version": "1.0.0",
   "engine": "procedural",
-  "identityHash": "c3541bb82cc73323",
+  "identityHash": "d5f9b33c9b762240",
   "identity": {
     "name": {
       "ar": "المؤرخ أ",
@@ -78,15 +78,7 @@
       "head": "turban",
       "headColor": "#C9A86A",
       "face": "beard",
-      "layers": [
-        {
-          "id": "robe_trim",
-          "anchor": "shoulder",
-          "src": "layers/robe_trim.svg",
-          "z": 4,
-          "tint": "#C9A86A"
-        }
-      ]
+      "layers": []
     },
     "variants": {
       "travel": {

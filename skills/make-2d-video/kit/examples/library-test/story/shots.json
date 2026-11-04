@@ -1,0 +1,13 @@
+{
+  "title": "Library Test — Archivist + Map Stability",
+  "duration": 12,
+  "shots": [
+    {"id": "s001", "start": 0, "end": 3, "line": "Archivist stands neutral", "scene": "archivist stand neutral", "bars": null, "in": {"type": "cut"}, "sfx": [], "notes": "pose stand, expr neutral"},
+    {"id": "s002", "start": 3, "end": 6, "line": "Archivist points angrily", "scene": "archivist point angry", "bars": null, "in": {"type": "cut"}, "sfx": [], "notes": "pose point, expr angry"},
+    {"id": "s003", "start": 6, "end": 8, "line": "Map 1914", "scene": "map 1914 original", "bars": null, "in": {"type": "cut"}, "sfx": [], "notes": ""},
+    {"id": "s004", "start": 8, "end": 10, "line": "Map 1918", "scene": "map 1918 expanded", "bars": null, "in": {"type": "cut"}, "sfx": [], "notes": ""},
+    {"id": "s005", "start": 10, "end": 11, "line": "Map 1922", "scene": "map 1922 alliance", "bars": null, "in": {"type": "cut"}, "sfx": [], "notes": ""},
+    {"id": "s006", "start": 11, "end": 12, "line": "Map transition", "scene": "map transition", "bars": null, "in": {"type": "fade", "dur": 0.5}, "sfx": [], "notes": ""}
+  ],
+  "music": []
+}

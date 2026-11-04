@@ -1,0 +1,149 @@
+{
+  "id": "test_archivist",
+  "version": "1.0.0",
+  "engine": "layered-svg",
+  "identityHash": "17d9b9641df8cb33",
+  "identity": {
+    "name": {
+      "ar": "الأرشيفي",
+      "en": "Archivist"
+    },
+    "role": "advisor",
+    "era": "test-era",
+    "tags": [
+      "test",
+      "layered",
+      "historian"
+    ],
+    "bio": "شخصية اختبار متعددة الطبقات — للتحقق من نظام layered-svg وثبات الهوية"
+  },
+  "rig": {
+    "anchors": {
+      "head": [
+        3,
+        -208
+      ],
+      "neck": [
+        0,
+        -174
+      ],
+      "shoulder": [
+        0,
+        -174
+      ],
+      "hip": [
+        0,
+        -100
+      ],
+      "elbowF": [
+        9,
+        -137
+      ],
+      "handF": [
+        13,
+        -101
+      ],
+      "elbowB": [
+        -7,
+        -136
+      ],
+      "handB": [
+        -9,
+        -100
+      ],
+      "kneeF": [
+        6,
+        -50
+      ],
+      "footF": [
+        3,
+        0
+      ],
+      "kneeB": [
+        -6,
+        -50
+      ],
+      "footB": [
+        -11,
+        0
+      ]
+    },
+    "baseHeight": 240,
+    "facingAxis": "+x"
+  },
+  "wardrobe": {
+    "base": {
+      "top": "robe",
+      "color": "#1E3A5F",
+      "color2": "#C9A86A",
+      "head": "turban",
+      "headColor": "#C9A86A",
+      "face": "beard",
+      "layers": [
+        {
+          "id": "body",
+          "anchor": "hip",
+          "src": "layers/body.svg",
+          "z": 1,
+          "tint": "#1E3A5F"
+        },
+        {
+          "id": "robe",
+          "anchor": "shoulder",
+          "src": "layers/robe.svg",
+          "z": 2,
+          "tint": "#1E3A5F"
+        },
+        {
+          "id": "face",
+          "anchor": "head",
+          "src": "layers/face.svg",
+          "z": 5
+        },
+        {
+          "id": "hair",
+          "anchor": "head",
+          "src": "layers/hair.svg",
+          "z": 6
+        },
+        {
+          "id": "accessory",
+          "anchor": "handF",
+          "src": "layers/accessory.svg",
+          "z": 7
+        }
+      ]
+    },
+    "variants": {
+      "formal": {
+        "top": "cape",
+        "color": "#2C1810",
+        "notes": "عباءة رسمية"
+      }
+    }
+  },
+  "expressions": [
+    "neutral",
+    "thinking",
+    "determined",
+    "angry",
+    "surprised"
+  ],
+  "poses": [
+    "stand",
+    "talk",
+    "point",
+    "crossArms",
+    "think"
+  ],
+  "palette": {
+    "primary": "#1E3A5F",
+    "accent": "#C9A86A",
+    "skin": "#E8D0A8"
+  },
+  "meta": {
+    "author": "library-test",
+    "created": "2026-11-04",
+    "notes": "شخصية اختبار layered-svg — ليست نهائية، لاختبار ثبات البصمة والطبقات"
+  }
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120" viewBox="0 0 80 120">
+  <!-- body layer — torso + limbs base -->
+  <rect x="25" y="10" width="30" height="70" rx="6" fill="#1E3A5F" stroke="#0F1F33" stroke-width="2"/>
+  <!-- legs -->
+  <rect x="27" y="80" width="12" height="30" rx="3" fill="#2C1810"/>
+  <rect x="41" y="80" width="12" height="30" rx="3" fill="#2C1810"/>
+  <!-- arms (simplified — will be positioned via anchors) -->
+  <rect x="10" y="20" width="14" height="35" rx="7" fill="#1E3A5F"/>
+  <rect x="56" y="20" width="14" height="35" rx="7" fill="#1E3A5F"/>
+</svg>

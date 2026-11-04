@@ -2,7 +2,7 @@
   "id": "test_commander_b",
   "version": "1.0.0",
   "engine": "procedural",
-  "identityHash": "4cfe93c1779efc21",
+  "identityHash": "58a39119e9649653",
   "identity": {
     "name": {
       "ar": "القائد ب",
@@ -78,15 +78,7 @@
       "head": "helmet",
       "headColor": "#8B7355",
       "face": "mustache",
-      "layers": [
-        {
-          "id": "robe_trim",
-          "anchor": "shoulder",
-          "src": "layers/robe_trim.svg",
-          "z": 4,
-          "tint": "#C9A86A"
-        }
-      ]
+      "layers": []
     },
     "variants": {
       "travel": {
