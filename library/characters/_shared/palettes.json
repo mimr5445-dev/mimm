@@ -1,0 +1,19 @@
+{
+  "_comment": "ألواح ألوان مشتركة — استخدمها لضمان اتساق بصري. لا تحصر نفسك بها، لكن ابدأ منها.",
+  "historical": {
+    "ottoman": {"primary": "#8B1A1A", "accent": "#D4AF37", "dark": "#2C1810", "bg": "#F5E6CC"},
+    "soviet": {"primary": "#CC0000", "accent": "#FFD700", "dark": "#1A1A1A", "bg": "#E8E8E8"},
+    "roman": {"primary": "#7B0000", "accent": "#DAA520", "dark": "#2B1B17", "bg": "#F0E6D2"},
+    "persian": {"primary": "#1E3A5F", "accent": "#C9A86A", "dark": "#0F1F33", "bg": "#E8DCC4"},
+    "arab": {"primary": "#1A5D1A", "accent": "#2E8B57", "dark": "#0F2F0F", "bg": "#F0F5E8"}
+  },
+  "modern": {
+    "military": {"primary": "#4B5320", "accent": "#C19A6B", "dark": "#2F341B", "bg": "#EAE6D6"},
+    "diplomat": {"primary": "#2C3E50", "accent": "#BDC3C7", "dark": "#1A252F", "bg": "#ECF0F1"}
+  },
+  "neutral": {
+    "ink": "#0e0b12",
+    "inkFar": "#2b2333",
+    "feature": "#f4efe6"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "test_region_a",
+  "name": {"ar": "منطقة الاختبار أ", "en": "Test Region A"},
+  "region": "test",
+  "projection": "custom",
+  "bounds": [0, 0, 800, 500],
+  "tags": ["test", "timeline"]
+}

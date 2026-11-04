@@ -1,0 +1,25 @@
+{
+  "_comment": "ألوان وحدود موحدة للخرائط — استخدمها في كل خريطة لضمان اتساق بصري",
+  "countryDefaults": {
+    "border": "#1a1a1a",
+    "borderWidth": 1.2,
+    "labelColor": "#ffffff",
+    "labelSize": 13,
+    "highlightBorderWidth": 3
+  },
+  "city": {
+    "capital": {"radius": 5, "color": "#FFD700", "stroke": "#000"},
+    "battle": {"radius": 4, "color": "#FF4444", "stroke": "#000"},
+    "port": {"radius": 3.5, "color": "#4A90E2", "stroke": "#000"},
+    "city": {"radius": 3, "color": "#ffffff", "stroke": "#000"}
+  },
+  "arrows": {
+    "invasion": {"color": "#ff4444", "width": 2.5},
+    "trade": {"color": "#4CAF50", "width": 1.8},
+    "migration": {"color": "#FF9800", "width": 1.8},
+    "alliance": {"color": "#9C27B0", "width": 1.5, "dashed": true}
+  },
+  "alliances": {
+    "default": {"opacity": 0.15}
+  }
+}

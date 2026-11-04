@@ -1,0 +1,156 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mimm.local/schemas/character.manifest.json",
+  "title": "Character Manifest — تعريف شخصية ثابتة",
+  "description": "يعرّف الهوية البصرية الثابتة لشخصية واحدة. identityHash يحسب من الحقول الثابتة فقط، ويُستخدم للتحقق والإصدارات.",
+  "type": "object",
+  "required": ["id", "version", "engine", "identityHash", "identity", "rig", "wardrobe", "expressions", "poses"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "معرّف ثابت snake_case بالإنجليزية، لا يتغير أبداً. مثال: test_historian_a"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "إصدار دلالي. يجب رفعه عند أي تغيير في identity (خصوصاً عند تغير identityHash)."
+    },
+    "engine": {
+      "type": "string",
+      "enum": ["procedural", "layered-svg", "hybrid"],
+      "description": "محرك الرسم الموحد — واحد من الثلاثة فقط. procedural=كود Canvas، layered-svg=طبقات SVG، hybrid=طبقات+AI مجمد."
+    },
+    "identityHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{16}$",
+      "description": "SHA256 مُقتطع (16 حرف hex) من canonicalIdentity. يُحسب بصيغة: hash(JSON.stringify({identity, rig, wardrobe.base})) مرتب ومُطبيع. يُستخدم للتحقق من عدم العبث ولإدارة الإصدارات."
+    },
+    "identity": {
+      "type": "object",
+      "required": ["name", "role", "era", "tags"],
+      "properties": {
+        "name": {
+          "type": "object",
+          "required": ["ar", "en"],
+          "properties": {
+            "ar": { "type": "string" },
+            "en": { "type": "string" }
+          },
+          "additionalProperties": { "type": "string" }
+        },
+        "role": { "type": "string", "enum": ["leader", "general", "advisor", "soldier", "civilian", "narrator", "other"] },
+        "era": { "type": "string", "description": "فترة تاريخية، مثال: 1922-1953 أو medieval" },
+        "tags": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "bio": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "rig": {
+      "type": "object",
+      "description": "نظام الإحداثيات والمفاصل — انظر library/characters/_shared/rigging.md",
+      "required": ["anchors", "baseHeight", "facingAxis"],
+      "properties": {
+        "anchors": {
+          "type": "object",
+          "description": "نقاط الارتكاز بالأسماء الثابتة. كل نقطة [x, y] في المساحة المحلية (feet=0,0، up=-y)",
+          "required": ["head", "neck", "shoulder", "hip", "elbowF", "handF", "elbowB", "handB", "kneeF", "footF", "kneeB", "footB"],
+          "properties": {
+            "head": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "neck": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "shoulder": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "hip": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "elbowF": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "handF": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "elbowB": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "handB": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "kneeF": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "footF": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "kneeB": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+            "footB": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+          },
+          "additionalProperties": false
+        },
+        "baseHeight": { "type": "number", "description": "الطول الأساسي بالوحدات عند s=1 (افتراضي 240، يطابق rig2d)" },
+        "facingAxis": { "type": "string", "enum": ["+x", "-x"], "description": "اتجاه الوجه الافتراضي (+x يمين)" }
+      },
+      "additionalProperties": false
+    },
+    "wardrobe": {
+      "type": "object",
+      "required": ["base"],
+      "properties": {
+        "base": {
+          "type": "object",
+          "description": "الملابس الأساسية الثابتة — جزء من الهوية (يدخل في identityHash)",
+          "required": ["top", "color"],
+          "properties": {
+            "top": { "type": "string", "enum": ["robe", "suit", "uniform", "armor", "tunic", "cape", "hoodie", "tshirt", "labcoat", "trench", "jersey", "dress", "tracksuit", "none"] },
+            "color": { "type": "string", "pattern": "^#[a-fA-F0-9]{6}$" },
+            "color2": { "type": "string", "pattern": "^#[a-fA-F0-9]{6}$" },
+            "head": { "type": "string", "enum": ["none", "cap", "capBack", "beanie", "fedora", "headband", "visor", "hood", "ponytail", "bun", "curly", "spiky", "turban", "keffiyeh", "crown", "helmet", "hat"] },
+            "headColor": { "type": "string", "pattern": "^#[a-fA-F0-9]{6}$" },
+            "face": { "type": "string", "enum": ["none", "glasses", "sunglasses", "beard", "mustache", "beard_mustache"] },
+            "layers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "anchor", "src"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "anchor": { "type": "string" },
+                  "src": { "type": "string", "description": "مسار الطبقة النسبي، مثال: layers/cape.svg" },
+                  "z": { "type": "integer" },
+                  "tint": { "type": "string", "pattern": "^#[a-fA-F0-9]{6}$" }
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "variants": {
+          "type": "object",
+          "description": "أزياء بديلة اختيارية — لا تدخل في identityHash، لكن لها hash فرعي",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "top": { "type": "string" },
+              "color": { "type": "string" },
+              "head": { "type": "string" },
+              "notes": { "type": "string" }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "expressions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "قائمة التعبيرات المتاحة — يجب أن تطابق EXPR في rig2d أو تعريفات layered-svg"
+    },
+    "poses": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "قائمة الوضعيات المتاحة — تطابق POSES"
+    },
+    "palette": {
+      "type": "object",
+      "properties": {
+        "primary": { "type": "string", "pattern": "^#[a-fA-F0-9]{6}$" },
+        "accent": { "type": "string", "pattern": "^#[a-fA-F0-9]{6}$" },
+        "skin": { "type": "string", "pattern": "^#[a-fA-F0-9]{6}$" }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "created": { "type": "string", "format": "date" },
+        "updated": { "type": "string", "format": "date" },
+        "notes": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

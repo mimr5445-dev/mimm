@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mimm.local/schemas/map.json",
+  "title": "Map Asset — خريطة قابلة لإعادة البناء الزمني",
+  "description": "خريطة تتكون من base (حالة جغرافية أصلية) + timeline (تغيرات عبر السنوات). يمكن إعادة بناء حالة أي سنة دون فقدان البيانات الأصلية.",
+  "type": "object",
+  "required": ["id", "version", "identityHash", "meta", "base", "timeline"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$", "description": "معرّف خريطة ثابت" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "identityHash": { "type": "string", "pattern": "^[a-f0-9]{16}$", "description": "hash(base) — يضمن عدم تغير الخريطة الأصلية دون رفع الإصدار" },
+    "engine": { "type": "string", "enum": ["procedural", "layered-svg", "hybrid"], "description": "محرك الرسم الموحد — نفس الثلاثة المستخدمة للشخصيات" },
+    "meta": {
+      "type": "object",
+      "required": ["name", "region", "projection"],
+      "properties": {
+        "name": { "type": "object", "required": ["ar", "en"], "properties": { "ar": { "type": "string" }, "en": { "type": "string" } }, "additionalProperties": { "type": "string" } },
+        "region": { "type": "string" },
+        "projection": { "type": "string", "enum": ["equirectangular", "mercator", "orthographic", "custom"], "description": "نوع الإسقاط — custom يعني إحداثيات منطقية مبسطة" },
+        "bounds": { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4, "description": "[minX, minY, maxX, maxY] بالوحدات المنطقية" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "base": {
+      "type": "object",
+      "description": "الحالة الجغرافية الأصلية (سنة الأساس). كل الدول والحدود هنا، والتايملاين يعدّل عليها.",
+      "required": ["year", "countries", "cities"],
+      "properties": {
+        "year": { "type": "integer", "description": "سنة الأساس" },
+        "countries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "color", "path"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "object", "required": ["ar", "en"], "properties": { "ar": { "type": "string" }, "en": { "type": "string" } } },
+              "color": { "type": "string", "pattern": "^#[a-fA-F0-9]{6}$" },
+              "path": { "type": "array", "items": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }, "description": "مضلع مبسّط [[x,y],...] بالوحدات المنطقية" },
+              "border": { "type": "string", "pattern": "^#[a-fA-F0-9]{6}$" },
+              "labelAt": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "cities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "at"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "object", "required": ["ar", "en"], "properties": { "ar": { "type": "string" }, "en": { "type": "string" } } },
+              "at": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+              "kind": { "type": "string", "enum": ["capital", "battle", "port", "city"] }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "timeline": {
+      "type": "array",
+      "description": "تغيرات مرتبة زمنياً. كل عنصر يصف فرقاً (diff) عن الحالة السابقة. إعادة البناء: ابدأ من base ثم طبّق كل diff حتى السنة المطلوبة.",
+      "items": {
+        "type": "object",
+        "required": ["year", "changes"],
+        "properties": {
+          "year": { "type": "integer" },
+          "label": { "type": "object", "required": ["ar", "en"], "properties": { "ar": { "type": "string" }, "en": { "type": "string" } } },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["op"],
+              "properties": {
+                "op": { "type": "string", "enum": ["add_country", "remove_country", "update_country", "add_city", "remove_city", "move_city", "add_arrow", "remove_arrow", "add_alliance", "remove_alliance"] },
+                "id": { "type": "string" },
+                "data": { "type": "object" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "arrows": {
+      "type": "array",
+      "description": "أسهم افتراضية (يمكن إضافتها عبر timeline أيضاً)",
+      "items": {
+        "type": "object",
+        "required": ["id", "from", "to"],
+        "properties": {
+          "id": { "type": "string" },
+          "from": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+          "to": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+          "type": { "type": "string", "enum": ["invasion", "trade", "migration", "alliance"] },
+          "color": { "type": "string" }
+        }
+      }
+    },
+    "alliances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "members"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "object", "required": ["ar", "en"], "properties": { "ar": { "type": "string" }, "en": { "type": "string" } } },
+          "members": { "type": "array", "items": { "type": "string" } },
+          "color": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

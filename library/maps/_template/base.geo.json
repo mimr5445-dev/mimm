@@ -1,0 +1,18 @@
+{
+  "year": 1900,
+  "countries": [
+    {
+      "id": "country_a",
+      "name": {"ar": "الدولة أ", "en": "Country A"},
+      "color": "#4A90E2",
+      "path": [[100,100],[300,100],[300,250],[100,250]],
+      "border": "#1a1a1a",
+      "labelAt": [200, 175]
+    }
+  ],
+  "cities": [
+    {"id": "capital_a", "name": {"ar": "العاصمة أ", "en": "Capital A"}, "at": [200, 175], "kind": "capital"}
+  ],
+  "arrows": [],
+  "alliances": []
+}

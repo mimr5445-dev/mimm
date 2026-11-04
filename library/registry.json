@@ -1,0 +1,62 @@
+{
+  "_comment": "فهرس الأصول المركزي — المصدر الوحيد للحقيقة. كل أصل جديد يجب تسجيله هنا.",
+  "version": "1.0.0",
+  "characters": [
+    {
+      "id": "test_historian_a",
+      "path": "/library/characters/test_historian_a/manifest.json",
+      "engine": "procedural",
+      "tags": [
+        "test",
+        "historian"
+      ],
+      "version": "1.0.0"
+    },
+    {
+      "id": "test_commander_b",
+      "path": "/library/characters/test_commander_b/manifest.json",
+      "engine": "procedural",
+      "tags": [
+        "test",
+        "commander"
+      ],
+      "version": "1.0.0"
+    }
+  ],
+  "maps": [
+    {
+      "id": "test_region_a",
+      "base": "/library/maps/test_region_a/base.geo.json",
+      "timeline": "/library/maps/test_region_a/timeline.json",
+      "meta": "/library/maps/test_region_a/meta.json",
+      "engine": "procedural",
+      "tags": [
+        "test",
+        "timeline"
+      ],
+      "version": "1.0.0"
+    }
+  ],
+  "locations": [
+    {
+      "id": "test_palace",
+      "path": "/library/locations/test_palace/palace.js",
+      "tags": [
+        "test",
+        "palace"
+      ],
+      "version": "1.0.0"
+    }
+  ],
+  "props": [
+    {
+      "id": "flag_template",
+      "path": "/library/props/_template/flag.js",
+      "tags": [
+        "template",
+        "flag"
+      ],
+      "version": "1.0.0"
+    }
+  ]
+}

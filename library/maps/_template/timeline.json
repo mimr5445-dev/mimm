@@ -1,0 +1,10 @@
+[
+  {
+    "year": 1910,
+    "label": {"ar": "توسع الدولة أ", "en": "Country A expands"},
+    "changes": [
+      {"op": "update_country", "id": "country_a", "data": {"color": "#2E5A8C"}},
+      {"op": "add_city", "id": "port_a", "data": {"id": "port_a", "name": {"ar": "الميناء", "en": "Port"}, "at": [280, 230], "kind": "port"}}
+    ]
+  }
+]

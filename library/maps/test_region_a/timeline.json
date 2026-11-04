@@ -1,0 +1,20 @@
+[
+  {
+    "year": 1918,
+    "label": {"ar": "انهيار الإمبراطورية الشمالية", "en": "Fall of Northern Empire"},
+    "changes": [
+      {"op": "remove_country", "id": "empire_north"},
+      {"op": "add_country", "id": "republic_north", "data": {"id": "republic_north", "name": {"ar": "جمهورية الشمال", "en": "North Republic"}, "color": "#4A90E2", "path": [[80,60],[220,60],[220,200],[80,200]], "border": "#1a1a1a", "labelAt": [150, 130]}},
+      {"op": "add_country", "id": "republic_east", "data": {"id": "republic_east", "name": {"ar": "جمهورية الشرق", "en": "East Republic"}, "color": "#2E7D32", "path": [[240,60],[380,60],[380,200],[240,200]], "border": "#1a1a1a", "labelAt": [310, 130]}},
+      {"op": "add_city", "id": "battle_1918", "data": {"id": "battle_1918", "name": {"ar": "معركة 1918", "en": "Battle 1918"}, "at": [230, 190], "kind": "battle"}}
+    ]
+  },
+  {
+    "year": 1922,
+    "label": {"ar": "تحالف الجنوب والشرق", "en": "South-East Alliance"},
+    "changes": [
+      {"op": "add_alliance", "id": "south_east_pact", "data": {"id": "south_east_pact", "name": {"ar": "حلف الجنوب والشرق", "en": "South-East Pact"}, "members": ["kingdom_south", "republic_east"], "color": "#9C27B0"}},
+      {"op": "add_arrow", "id": "arrow_1922", "data": {"id": "arrow_1922", "from": [230, 310], "to": [310, 130], "type": "alliance", "color": "#9C27B0"}}
+    ]
+  }
+]

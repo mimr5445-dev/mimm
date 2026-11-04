@@ -1,0 +1,8 @@
+{
+  "id": "change_me",
+  "name": {"ar": "اسم المنطقة", "en": "Region Name"},
+  "region": "middle_east",
+  "projection": "custom",
+  "bounds": [0, 0, 800, 500],
+  "tags": ["template"]
+}

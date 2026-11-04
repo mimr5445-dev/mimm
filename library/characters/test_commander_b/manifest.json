@@ -1,0 +1,124 @@
+{
+  "id": "test_commander_b",
+  "version": "1.0.0",
+  "engine": "procedural",
+  "identityHash": "4cfe93c1779efc21",
+  "identity": {
+    "name": {
+      "ar": "القائد ب",
+      "en": "Commander B"
+    },
+    "role": "general",
+    "era": "test",
+    "tags": [
+      "test",
+      "historian"
+    ],
+    "bio": "شخصية اختبار — مؤرخ افتراضي للتحقق من نظام الطبقات والمحركات"
+  },
+  "rig": {
+    "anchors": {
+      "head": [
+        3,
+        -208
+      ],
+      "neck": [
+        0,
+        -174
+      ],
+      "shoulder": [
+        0,
+        -174
+      ],
+      "hip": [
+        0,
+        -100
+      ],
+      "elbowF": [
+        9,
+        -137
+      ],
+      "handF": [
+        13,
+        -101
+      ],
+      "elbowB": [
+        -7,
+        -136
+      ],
+      "handB": [
+        -9,
+        -100
+      ],
+      "kneeF": [
+        6,
+        -50
+      ],
+      "footF": [
+        3,
+        0
+      ],
+      "kneeB": [
+        -6,
+        -50
+      ],
+      "footB": [
+        -11,
+        0
+      ]
+    },
+    "baseHeight": 240,
+    "facingAxis": "+x"
+  },
+  "wardrobe": {
+    "base": {
+      "top": "uniform",
+      "color": "#4B5320",
+      "color2": "#C9A86A",
+      "head": "helmet",
+      "headColor": "#8B7355",
+      "face": "mustache",
+      "layers": [
+        {
+          "id": "robe_trim",
+          "anchor": "shoulder",
+          "src": "layers/robe_trim.svg",
+          "z": 4,
+          "tint": "#C9A86A"
+        }
+      ]
+    },
+    "variants": {
+      "travel": {
+        "top": "cape",
+        "color": "#2C3E50",
+        "notes": "عباءة سفر"
+      }
+    }
+  },
+  "expressions": [
+    "neutral",
+    "thinking",
+    "determined",
+    "surprised",
+    "angry"
+  ],
+  "poses": [
+    "stand",
+    "talk",
+    "point",
+    "crossArms",
+    "think",
+    "sit"
+  ],
+  "palette": {
+    "primary": "#4B5320",
+    "accent": "#C19A6B",
+    "skin": "#0e0b12"
+  },
+  "meta": {
+    "author": "library-test",
+    "created": "2026-11-04",
+    "notes": "شخصية اختبار — ليست أصلاً نهائياً، للتحقق من المحركات الثلاثة"
+  }
+}

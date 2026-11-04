@@ -1,0 +1,27 @@
+{
+  "year": 1914,
+  "countries": [
+    {
+      "id": "empire_north",
+      "name": {"ar": "الإمبراطورية الشمالية", "en": "Northern Empire"},
+      "color": "#8B1A1A",
+      "path": [[80,60],[380,60],[380,200],[80,200]],
+      "border": "#1a1a1a",
+      "labelAt": [230, 130]
+    },
+    {
+      "id": "kingdom_south",
+      "name": {"ar": "المملكة الجنوبية", "en": "Southern Kingdom"},
+      "color": "#1E3A5F",
+      "path": [[80,220],[380,220],[380,360],[80,360]],
+      "border": "#1a1a1a",
+      "labelAt": [230, 290]
+    }
+  ],
+  "cities": [
+    {"id": "capital_north", "name": {"ar": "عاصمة الشمال", "en": "North Capital"}, "at": [230, 110], "kind": "capital"},
+    {"id": "capital_south", "name": {"ar": "عاصمة الجنوب", "en": "South Capital"}, "at": [230, 310], "kind": "capital"}
+  ],
+  "arrows": [],
+  "alliances": []
+}

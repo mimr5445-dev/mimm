@@ -1,0 +1,49 @@
+{
+  "id": "change_me",
+  "version": "1.0.0",
+  "engine": "procedural",
+  "identityHash": "0000000000000000",
+  "identity": {
+    "name": {"ar": "اسم عربي", "en": "English Name"},
+    "role": "leader",
+    "era": "1900-1950",
+    "tags": ["tag1", "tag2"],
+    "bio": "وصف موجز للشخصية ودورها التاريخي"
+  },
+  "rig": {
+    "anchors": {
+      "head": [3, -208],
+      "neck": [0, -174],
+      "shoulder": [0, -174],
+      "hip": [0, -100],
+      "elbowF": [9, -137],
+      "handF": [13, -101],
+      "elbowB": [-7, -136],
+      "handB": [-9, -100],
+      "kneeF": [6, -50],
+      "footF": [3, 0],
+      "kneeB": [-6, -50],
+      "footB": [-11, 0]
+    },
+    "baseHeight": 240,
+    "facingAxis": "+x"
+  },
+  "wardrobe": {
+    "base": {
+      "top": "suit",
+      "color": "#2C3E50",
+      "color2": "#BDC3C7",
+      "head": "none",
+      "headColor": null,
+      "face": "none",
+      "layers": []
+    },
+    "variants": {
+      "military": {"top": "uniform", "color": "#4B5320", "notes": "زي عسكري بديل"}
+    }
+  },
+  "expressions": ["neutral", "determined", "angry", "thinking", "surprised"],
+  "poses": ["stand", "talk", "point", "crossArms", "sit"],
+  "palette": {"primary": "#2C3E50", "accent": "#BDC3C7", "skin": "#0e0b12"},
+  "meta": {"author": "library", "created": "2026-01-01", "notes": "قالب — انسخه وعدّله"}
+}
